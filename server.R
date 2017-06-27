@@ -8,13 +8,16 @@
 #
 
 library(shiny)
-library(devtools)
-install_github('MoBiodiv/mobsim')    # downloads the latest version of the package
-library(mobsim)
-
+# library(devtools)
+# install_github('MoBiodiv/mobsim')    # downloads the latest version of the package
+library(mobsim, lib.loc="./Library")
 
 # Define server logic for slider examples
 shinyServer(function(input, output) {
+  
+  # if(keep){
+  #   ...
+  # }
   
    ## plot theme
   output$InteractivePlot <- renderPlot({
@@ -22,10 +25,9 @@ shinyServer(function(input, output) {
     
     sim.com <- sim_thomas_community(s_pool = input$S, n_sim = input$N, sigma=input$spatagg, sad_type = input$select, sad_coef=list(cv_abund = input$cv.abund), fix_s_sim = T)
 
-    layout(matrix(c(0,1,1,2,2,0,
-                    0,3,3,3,3,0,
-                    4,4,5,5,6,6), byrow = T, nrow = 3, ncol = 6),
-           heights = c(1,1.2,1))
+    layout(matrix(c(1,2,3,
+                    4,5,6), byrow = T, nrow = 2, ncol = 3),
+           heights = c(1,1), widths=c(1,1,1))
     
     sad1 <- community_to_sad(sim.com)
     sac1 <- spec_sample_curve(sim.com)
