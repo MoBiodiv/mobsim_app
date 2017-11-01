@@ -20,16 +20,27 @@ The tool
 + spatial distribution of individuals within a unit area,  
 + species accummulation curves (SAC), species-area relationships (SAR), and the distance-decay curve.   
 
+## Run the app on the web
 
-## Run the App
+The app is hosted at the following url: https://github.com/MoBiodiv/mobsim_app
 
-The app thus depends on the R-package `mobsim`. The latest version of `mobsim` will be automatically downloaded from the GitHub repository 'MoBiodiv/mobsim' using the R-package `devtools`.  The interactive interface relies on the R-package `shiny`.
+## Run the app locally
 
-To run the app two lines of code are needed
+The app can be run locally. Several R packages are required for locally hosting the app, these can be installed
+from the R terminal:
 
-> library(shiny)  
-> runGitHub("KatharinaGerstner/mobsim_app")
+```r
+install.packages(c('shiny', 'shinyBS', 'devtools'))
+library(devtools)
+install_github('mobiodiv/mobsim')
+```
 
+Once those dependancies are installed you can run the app from the R terminal using:
+
+```r
+library(shiny)  
+runGitHub("KatharinaGerstner/mobsim_app")
+```
 
 ## License
 
