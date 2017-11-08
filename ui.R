@@ -19,21 +19,30 @@ fluidPage(
   sidebarLayout(
     
     sidebarPanel(
+      
       # Slider inputs
-      sliderInput("S", "Species Richness",
-                  min=10, max=500, value=50, step=10),
-      
       sliderInput("N", "Number of individuals",
-                  min=500, max=10000, value=1000, step=100),
+                  min=10, max=5000, value=1000, step=50, ticks=F),
       
-      sliderInput("cv.abund", "CV(SAD)",
-                  min = 0.5, max = 3, value = 1, step= 0.5),
+      sliderInput("S", "Species Richness",
+                  min=10, max=500, value=50, step=10, ticks=F),
       
-      sliderInput("spatagg", "Spatial Agregation",
-                  min = 0.0, max = 1, value = 0.1, step= 0.1),
+      selectizeInput("sad_type", "SAD Type", choices=c("lognormal"="lnorm","geometric"="geom","Fisher's log-series"="ls")),
+      #,
+      #               options = list(placeholder = 'Please select an option below',onInitialize = I('function() { this.setValue(""); }')),
+
+      # This outputs the dynamic UI component
+      uiOutput("ui"),
+
+      sliderInput("spatagg", "Spatial Aggregation",
+                  min = 0, max = 2, value = 0.1, step= 0.01, ticks=F),
+      
+      selectizeInput("spatdist", "Cluster parameter", choices = c("Number of mother points"="n.mother", "Number of clusters"="n.cluster")),
+      
+      textInput("spatcoef","")
       
       # Action button
-      submitButton("Restart Simulation")#,
+#      actionButton("Restart","Restart Simulation")#,
       
       # Check box
 #      checkboxInput('keep', 'Keep last simulation', FALSE)      
