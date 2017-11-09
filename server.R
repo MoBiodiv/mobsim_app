@@ -33,46 +33,51 @@ shinyServer(function(input, output, session) {
             "ls"=textInput("coef",label="Fisher's alpha parameter",value=1)
     )
   })
-    
+   
   ## plot theme
   output$InteractivePlot <- renderPlot({
-    set.seed(229376)
+    input$Restart
     
-    n.mother <- ifelse(input$spatdist=="n.mother", as.numeric(input$spatcoef), NA)
-    n.cluster <- ifelse(input$spatdist=="n.cluster", as.numeric(input$spatcoef), NA)
+    isolate({
+      set.seed(229376)
     
-    sim.com <- switch(input$sad_type,
-                      "lnorm"=sim_thomas_community(s_pool = input$S, n_sim = input$N, 
-                                                   sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster,
-                                                   sad_type = input$sad_type, sad_coef=list(cv_abund=input$coef),
-                                    fix_s_sim = T),
-                      "geom"=sim_thomas_community(s_pool = input$S, n_sim = input$N,                                                    sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster, sad_type = input$sad_type, 
-                                                   sad_coef=list(prob=input$coef),
-                                                   fix_s_sim = T),
-                      "ls"=sim_thomas_community(s_pool = input$S, n_sim = input$N,                                                    sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster,
- sad_type = input$sad_type, 
-                                                   sad_coef=list(N=input$N,alpha=as.numeric(input$coef)),
-                                                   fix_s_sim = T)
-                      
-    )
-
-    layout(matrix(c(1,2,3,
-                    4,5,6), byrow = T, nrow = 2, ncol = 3),
-           heights = c(1,1), widths=c(1,1,1))
-    
-    sad1 <- community_to_sad(sim.com)
-    sac1 <- spec_sample_curve(sim.com)
-    divar1 <- divar(sim.com)
-    dist1 <- dist_decay(sim.com)
-    
-    plot(sad1, method = "octave")
-    plot(sad1, method = "rank")
-    
-    plot(sim.com)
-    
-    plot(sac1)
-    plot(divar1)
-    plot(dist1)
+      n.mother <- ifelse(input$spatdist=="n.mother", as.numeric(input$spatcoef), NA)
+      n.cluster <- ifelse(input$spatdist=="n.cluster", as.numeric(input$spatcoef), NA)
+      
+      sim.com <- switch(input$sad_type,
+                        "lnorm"=sim_thomas_community(s_pool = input$S, n_sim = input$N, 
+                                                     sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster,
+                                                     sad_type = input$sad_type, sad_coef=list(cv_abund=input$coef),
+                                                     fix_s_sim = T),
+                        "geom"=sim_thomas_community(s_pool = input$S, n_sim = input$N,                                                    sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster, sad_type = input$sad_type, 
+                                                    sad_coef=list(prob=input$coef),
+                                                    fix_s_sim = T),
+                        "ls"=sim_thomas_community(s_pool = input$S, n_sim = input$N,                                                    sigma=input$spatagg, mother_points=n.mother, cluster_points=n.cluster,
+                                                  sad_type = input$sad_type, 
+                                                  sad_coef=list(N=input$N,alpha=as.numeric(input$coef)),
+                                                  fix_s_sim = T)
+                        
+      )
+      
+      layout(matrix(c(1,2,3,
+                      4,5,6), byrow = T, nrow = 2, ncol = 3),
+             heights = c(1,1), widths=c(1,1,1))
+      
+      sad1 <- community_to_sad(sim.com)
+      sac1 <- spec_sample_curve(sim.com)
+      divar1 <- divar(sim.com)
+      dist1 <- dist_decay(sim.com)
+      
+      plot(sad1, method = "octave")
+      plot(sad1, method = "rank")
+      
+      plot(sim.com)
+      
+      plot(sac1)
+      plot(divar1)
+      plot(dist1)
+    })
     
   })
+  
 })

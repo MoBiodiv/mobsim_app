@@ -34,15 +34,15 @@ fluidPage(
       # This outputs the dynamic UI component
       uiOutput("ui"),
 
-      sliderInput("spatagg", "Spatial Aggregation",
+      sliderInput("spatagg", "Spatial Aggregation (mean distance from mother points)",
                   min = 0, max = 2, value = 0.1, step= 0.01, ticks=F),
       
       selectizeInput("spatdist", "Cluster parameter", choices = c("Number of mother points"="n.mother", "Number of clusters"="n.cluster")),
       
-      textInput("spatcoef","")
+      textInput("spatcoef",""),
       
       # Action button
-#      actionButton("Restart","Restart Simulation")#,
+      actionButton(inputId="Restart",label="Restart Simulation")#,
       
       # Check box
 #      checkboxInput('keep', 'Keep last simulation', FALSE)      
