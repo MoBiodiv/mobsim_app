@@ -10,8 +10,9 @@ This is an interactive tool that aims to simulate and visualize multiple biodive
 
 * **total number of individuals**, 
 * **total number of species**, 
-* the coefficient of variation in the species-abundance distribution that determines the **eveness of the abundances**,
-* **spatial aggregation of species**.
+* **the type of the species-abundance distribution (SAD)**,
+* **parameters specific to the SAD type**, e.g. the coefficient of variation in the lognormal SAD determines the **eveness of the abundances** (the lower CV(abundance), the more even is the community),
+* **spatial aggregation of species** given as the mean distance to mother points and either the number of mother points or clusters. The lower the mean distance to mother points the more clumped is the community.  Similarly, the smaller the number of mother points (minimum=1) or alternatively the larger the number of clusters the more clumped is the community.
 
 The tool   
 1. simulates locations of individuals of different species in a location (plot, area);      
