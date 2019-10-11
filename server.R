@@ -34,7 +34,7 @@ shinyServer(function(input, output, session) {
                          y = numeric(),
                          species_ID = factor())
   
-output$ui <- renderUI({
+output$CVslider <- renderUI({
 	if (is.null(input$sad_type))
 		return()
 	switch(input$sad_type,
@@ -43,20 +43,52 @@ output$ui <- renderUI({
 		"ls"=textInput("coef",label="Fisher's alpha parameter",value=1)
 	)
 })
-  
-observeEvent(input$method_type, {
+
+output$species_ID_input <- renderUI({
+	if (input$method_type != "click_for_mother_points")	{
+		return()
+	} else {
+		selectInput("species_ID", "Pick species ID", paste("species", 1:input$S, sep="_"))
+	}
+})
+
+output$on_plot_selection <- renderPlot({
   if (is.null(input$method_type)) {
 		return()
 	} else {
-		 if(input$method_type=="click_for_mother_points") {
-			output$on_plot_selection <- renderPlot({
+		if(input$method_type=="click_for_mother_points") {
 				color_vector <- rainbow(input$S)
 				plot(x=values$DT$x, y=values$DT$y, col=color_vector[values$DT$species_ID], xlim=c(0,1), ylim=c(0,1), xlab="", ylab="", las=1, asp=1, pch=20)
 				abline(h=c(0,1), v=c(0,1), lty=2)
-			})
 		}
 	}
- })
+})
+
+
+output$rem_point_button <- renderUI({
+	if (input$method_type != "click_for_mother_points")	{
+		return()
+	} else {
+		actionButton("rem_point", "Remove Last Point")
+	}
+})
+
+output$rem_all_points_button <- renderUI({
+	if (input$method_type != "click_for_mother_points")	{
+		return()
+	} else {
+		actionButton("rem_all_points", "Remove All Points")
+	}
+})
+
+
+output$info <- renderUI({
+	if (input$method_type != "click_for_mother_points")	{
+		return()
+	} else {
+		verbatimTextOutput("info", placeholder=F)
+	}
+})
 
 
 # observeEvent(input$community, {
