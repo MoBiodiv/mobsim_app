@@ -26,20 +26,21 @@ navbarPage("Visualization of biodiversity pattern",
 					sliderInput("S", "Species Richness",
 									min=5, max=500, value=5, step=5, ticks=F),
 					
-					selectizeInput("sad_type", "SAD Type", choices=c("lognormal"="lnorm","geometric"="geom","Fisher's log-series"="ls")),
-					
-					# This outputs the dynamic UI (user input) component (CV(abundance))
-					uiOutput("CVslider")
+					selectizeInput("method_type", label="Method", choices=c("Random mother points"="random_mother_points", "Click for mother points"="click_for_mother_points", "User community file"="uploading_community_data"), selected="Random mother points", multiple=FALSE)
+
 				),
 				column(width=4,
-					selectizeInput("method_type", label="Method", choices=c("Random mother points"="random_mother_points", "Click for mother points"="click_for_mother_points", "User community file"="uploading_community_data"), selected="Random mother points", multiple=FALSE),
+					uiOutput("select_sad_type"),
+					# This outputs the dynamic UI (user input) component (CV(abundance))
+					uiOutput("CVslider"),
 					
 					#sliderInput("spatagg", "Spatial Aggregation (mean distance from mother points)", min = 0, max = 2, value = 0.1, step= 0.01, ticks=F),
-					textInput(inputId="spatagg", label="Spatial Aggregation (mean distance from mother points)", value = 0.1),
+					uiOutput("text_spat_agg"),
 											
-					selectizeInput(inputId="spatdist", "Cluster parameter", choices = c("Number of mother points"="n.mother", "Number of clusters"="n.cluster")),
+					uiOutput("spatdist"),
+					uiOutput("spatcoef"),
 					
-					textInput(inputId="spatcoef",label="Integer values separated by commas", value="1")
+					uiOutput("community")
 				),
 				
 				column(width=4,
@@ -58,14 +59,6 @@ navbarPage("Visualization of biodiversity pattern",
 			)
 		),
 		
-		fluidRow(
-			column(width=6, offset=4,
-				fileInput(inputId="community", label="Choose rData  community File", multiple = FALSE,
-					accept = "", width = NULL,
-					buttonLabel = "Browse...", placeholder = "No file selected")	# c("text/csv", "text/comma-separated-values,text/plain", ".csv")
-			),
-			column(width=2)
-		),
 		
 		fluidRow(
 			column(width=6, offset=5,

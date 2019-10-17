@@ -33,9 +33,18 @@ shinyServer(function(input, output, session) {
   values$DT <- data.frame(x = numeric(),
                          y = numeric(),
                          species_ID = factor())
+
+output$select_sad_type <- renderUI({
+	if (!input$method_type %in% c("random_mother_points","click_for_mother_points"))	{
+		return()
+	} else {
+		selectizeInput("sad_type", "SAD Type", choices=c("lognormal"="lnorm","geometric"="geom","Fisher's log-series"="ls"))
+	}					
+})
+					
   
 output$CVslider <- renderUI({
-	if (is.null(input$sad_type))
+	if (!input$method_type %in% c("random_mother_points","click_for_mother_points") | is.null(input$sad_type))	
 		return()
 	switch(input$sad_type,
 		"lnorm"=sliderInput("coef", label="CV(abundance), i.e. standard deviation of abundances divided by the mean abundance",value=1, min=0, max=5, step=0.1, ticks=F),
@@ -43,6 +52,33 @@ output$CVslider <- renderUI({
 		"ls"=textInput("coef",label="Fisher's alpha parameter",value=1)
 	)
 })
+
+output$text_spat_agg <- renderUI({
+	if (!input$method_type %in% c("random_mother_points","click_for_mother_points"))	{
+		return()
+	} else {
+		textInput(inputId="spatagg", label="Spatial Aggregation (mean distance from mother points)", value = 0.1)
+	}			
+})
+
+
+output$spatdist <- renderUI({
+	if (input$method_type != "random_mother_points")	{
+		return()
+	} else {
+		selectizeInput(inputId="spatdist", "Cluster parameter", choices = c("Number of mother points"="n.mother", "Number of clusters"="n.cluster"))
+	}					
+})
+
+output$spatcoef <- renderUI({
+	if (input$method_type != "random_mother_points")	{
+		return()
+	} else {
+		textInput(inputId="spatcoef",label="Integer values separated by commas", value="1")
+	}					
+})
+
+
 
 output$species_ID_input <- renderUI({
 	if (input$method_type != "click_for_mother_points")	{
@@ -58,6 +94,7 @@ output$on_plot_selection <- renderPlot({
 	} else {
 		if(input$method_type=="click_for_mother_points") {
 				color_vector <- rainbow(input$S)
+				par(mex=0.7, mar=c(3,3,1,1))
 				plot(x=values$DT$x, y=values$DT$y, col=color_vector[values$DT$species_ID], xlim=c(0,1), ylim=c(0,1), xlab="", ylab="", las=1, asp=1, pch=20)
 				abline(h=c(0,1), v=c(0,1), lty=2)
 		}
@@ -91,16 +128,19 @@ output$info <- renderUI({
 })
 
 
-# observeEvent(input$community, {
-	# if (is.null(input$community)) {
-			# return()
-		# } else {
-			 # method_type <- reactiveValues(method_type="click_for_mother_points")
-		# }
-# })
+output$community <- renderUI({
+	if (input$method_type != "uploading_community_data")	{
+		return()
+	} else {
+		fileInput(inputId="sim.com", label="Choose rData community File", multiple = FALSE,
+					accept = "", width = NULL,
+					buttonLabel = "Browse...", placeholder = "No file selected")	# c("text/csv", "text/comma-separated-values,text/plain", ".csv")
+	}
+})
+
 
  
-observeEvent(input$plot_click, {
+observeEvent(input$plot_click, { # The data.frame could be a matrix with already existing data: "no clustering" to allow users not to cluster some species.
 add_row = data.frame(x = input$plot_click$x,
 						 y = input$plot_click$y,
 						 species_ID = factor(input$species_ID, levels = paste("species", 1:input$S, sep="_")))
@@ -125,7 +165,7 @@ output$info <- renderText({
 		paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
 	}
 	xy_range_str <- function(e) {
-	if(is.null(e)) return("NULL\n")
+		if(is.null(e)) return("NULL\n")
 		paste0("xmin=", round(e$xmin, 1), " xmax=", round(e$xmax, 1), 
 				 " ymin=", round(e$ymin, 1), " ymax=", round(e$ymax, 1))
 	}
@@ -143,7 +183,7 @@ output$info <- renderText({
     isolate({
       
 		set.seed(229376)
-			
+		
 		if(input$method_type != "uploading_community_data") {
 		
 			spatagg_num <- as.numeric(unlist(strsplit(trimws(input$spatagg), ",")))
@@ -152,31 +192,42 @@ output$info <- renderText({
 			if(input$spatdist=="n.mother") n.mother <- spatcoef_num else n.mother <- NA
 			if(input$spatdist=="n.cluster") n.cluster <- spatcoef_num else n.cluster <- NA
 			
-			
-			
 			simulation_parameters <- switch(input$method_type,
-									"random_mother_points"=list(mother_points=n.mother, cluster_points=n.cluster, xmother=NA, ymother=NA),
-									"click_for_mother_points"=list(mother_points=NA, cluster_points=NA,
-										xmother=tapply(values$DT$x, values$DT$species_ID, list),
-										ymother=tapply(values$DT$y, values$DT$species_ID, list))
+									"random_mother_points"=list(mother_points=n.mother,
+																		cluster_points=n.cluster,
+																		xmother=NA,
+																		ymother=NA),
+									"click_for_mother_points"=list(mother_points=NA,
+																		cluster_points=NA,
+																		xmother=tapply(values$DT$x, values$DT$species_ID, list),
+																		ymother=tapply(values$DT$y, values$DT$species_ID, list))
 									)
+									
+			# if(input$method_type == "click_for_mother_points") {	# if the user does not set any point for some species: no clustering
+				# species_list <- paste("species", 1:input$S, sep="_")
+				# missing_species <- species_list[!species_list %in% values$DT$species_ID]
+				# if(length(missing_species) > 0) {
+					# xmother[missing_species] <- "no_clustering"
+					# ymother[missing_species] <- "no_clustering"
+				# }
+				# xmother[is.na(xmother)] <- "no clustering"
+				# ymother[is.na(ymother)] <- "no clustering"
+			# }
 			
 			sim.com <- switch(input$sad_type,
-									"lnorm"=sim_thomas_community(s_pool = input$S, n_sim = input$N, 
-																		  sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
-																		  sad_type = input$sad_type, sad_coef=list(cv_abund=input$coef),
-																		  fix_s_sim = T),
-									"geom"=sim_thomas_community(s_pool = input$S, n_sim = input$N,
-																			sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
-																			sad_type = input$sad_type, sad_coef=list(prob=input$coef),
-																			fix_s_sim = T),
-									"ls"=sim_thomas_community(s_pool = input$S, n_sim = input$N,
-																			sad_type = input$sad_type, sad_coef=list(N=input$N,alpha=as.numeric(input$coef)),
-																			sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
-																			fix_s_sim = T)
-									
-			)
-			
+							"lnorm"=sim_thomas_community(s_pool = input$S, n_sim = input$N, 
+								sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
+								sad_type = input$sad_type, sad_coef=list(cv_abund=input$coef),
+								fix_s_sim = T),
+							"geom"=sim_thomas_community(s_pool = input$S, n_sim = input$N,
+								sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
+								sad_type = input$sad_type, sad_coef=list(prob=input$coef),
+								fix_s_sim = T),
+							"ls"=sim_thomas_community(s_pool = input$S, n_sim = input$N,
+								sad_type = input$sad_type, sad_coef=list(N=input$N,alpha=as.numeric(input$coef)),
+								sigma=spatagg_num, mother_points=simulation_parameters$mother_points, cluster_points=simulation_parameters$cluster_points, xmother=simulation_parameters$xmother, ymother=simulation_parameters$ymother,
+								fix_s_sim = T)
+						)
 		}
 		
       layout(matrix(c(1,2,3,
